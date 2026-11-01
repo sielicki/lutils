@@ -226,5 +226,5 @@ repetition, PCRE, recursive traversal, binary-file policy, and locale-aware
 case folding remain outside the implemented subset.
 
 Run `nix develop --command python3 tests/conformance.py` for the expanded
-corpus, or `nix develop --command python3 tests/performance.py` for benchmarks. See
+corpus, or `nix develop --command uv run tests/performance.py` for benchmarks. See
 [tests/README.md](tests/README.md) for their provenance and runner options.

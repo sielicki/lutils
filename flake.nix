@@ -70,6 +70,7 @@
             coreutils
             uutils-coreutils
             python3
+            uv
             perl
             findutils
             diffutils

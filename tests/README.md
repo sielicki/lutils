@@ -78,13 +78,14 @@ Check the harness itself with `python3 -m unittest discover -s tests -p 'test_*.
 Run performance comparisons in the same shell:
 
 ```sh
-nix develop --command python3 tests/performance.py
+nix develop --command uv run tests/performance.py
 ```
 
 The benchmark checks every warmup and measured output against GNU, including
 the copied file for `cp`; invalid runs have no timing result. It rotates command
 order to reduce cache bias, then reports median process time, median absolute
-deviation, and effective workload MiB/s for byte-processing cases. The rate is
+deviation, and effective workload MiB/s in a GitHub Markdown table. The script
+uses inline `uv` metadata to install pandas and tabulate. The rate is
 based on fixture or result size, not measured disk I/O. There is no performance
 pass threshold. Use `--repeats` and `--size-mib` to change the sample count and
 stream size; `--json-output PATH` saves raw samples and validation results.

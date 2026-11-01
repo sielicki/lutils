@@ -1,4 +1,8 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["pandas>=2.2,<4", "tabulate>=0.9,<1"]
+# ///
 """Benchmark validated lutils, GNU, and uutils workloads."""
 
 import argparse
@@ -147,12 +151,41 @@ def scenarios(size_mib: int) -> list[Scenario]:
     ]
 
 
-def format_time(samples: list[float]) -> str:
-    if not samples:
-        return "INVALID"
-    median = statistics.median(samples)
-    mad = statistics.median(abs(sample - median) for sample in samples)
-    return f"{median:.2f} +/-{mad:.2f}"
+def summary_row(record: dict) -> dict[str, str]:
+    results = record["implementations"]
+    def timing(label: str) -> str:
+        if label not in results:
+            return "N/A"
+        median = results[label]["median_ms"]
+        deviation = results[label]["mad_ms"]
+        return f"{median:.2f} ± {deviation:.2f}" if median is not None else "INVALID"
+
+    def rate(label: str) -> str:
+        value = results[label]["effective_mib_s"] if label in results else None
+        return f"{value:.1f}" if value is not None else "—"
+
+    lutils_ms = results["lutils"]["median_ms"]
+    gnu_ms = results["GNU"]["median_ms"]
+    return {
+        "Scenario": record["name"],
+        "lutils ms": timing("lutils"),
+        "GNU ms": timing("GNU"),
+        "uutils ms": timing("uutils"),
+        "lutils/GNU": f"{lutils_ms / gnu_ms:.2f}×" if lutils_ms is not None and gnu_ms else "—",
+        "L MiB/s": rate("lutils"),
+        "GNU MiB/s": rate("GNU"),
+        "U MiB/s": rate("uutils"),
+    }
+
+
+def markdown_table(records: list[dict]) -> str:
+    # Import only when rendering, so the stdlib benchmark tests remain usable
+    # without installing the script's display dependencies.
+    import pandas as pd
+
+    return pd.DataFrame([summary_row(record) for record in records]).to_markdown(
+        index=False, tablefmt="github", disable_numparse=True,
+    )
 
 
 def benchmark(scenario: Scenario, commands: dict[str, list[str]], repeats: int,
@@ -245,10 +278,7 @@ def main() -> int:
     environment = {**os.environ, "LC_ALL": "C"}
     records = []
     failed = False
-    print("Process time in ms: median +/- median absolute deviation; every output checked against GNU")
-    print("Effective MiB/s uses output/copy bytes or logical input size; it does not measure disk I/O")
-    print(f"{'scenario':19} {'lutils':>18} {'GNU':>18} {'uutils':>18} {'lutils/GNU':>12}"
-          f" {'L MiB/s':>10} {'GNU MiB/s':>10} {'U MiB/s':>10}")
+    errors = []
     for scenario in scenarios(args.size_mib):
         gnu_directory = os.environ.get("LUTILS_GREP_BIN") if scenario.utility == "grep" else gnu
         commands = {
@@ -260,27 +290,23 @@ def main() -> int:
         try:
             record = benchmark(scenario, commands, args.repeats, args.size_mib, environment)
         except (OSError, subprocess.TimeoutExpired, RuntimeError) as exc:
-            print(f"{scenario.name}: INVALID: {exc}")
+            errors.append(f"{scenario.name}: INVALID: {exc}")
             failed = True
             continue
         records.append(record)
         results = record["implementations"]
-        cells = [format_time(results[label]["samples_ms"])
-                 if label in results and results[label]["median_ms"] is not None
-                 else ("N/A" if label not in results else "INVALID")
-                 for label in ("lutils", "GNU", "uutils")]
-        lutils_ms = results["lutils"]["median_ms"]
-        gnu_ms = results["GNU"]["median_ms"]
-        ratio = f"{lutils_ms / gnu_ms:.2f}x" if lutils_ms is not None and gnu_ms else "-"
-        rates = [results[label]["effective_mib_s"] if label in results else None
-                 for label in ("lutils", "GNU", "uutils")]
-        rate_cells = [f"{rate:.1f}" if rate is not None else "-" for rate in rates]
-        print(f"{scenario.name:19} {cells[0]:>18} {cells[1]:>18} {cells[2]:>18} {ratio:>12}"
-              f" {rate_cells[0]:>10} {rate_cells[1]:>10} {rate_cells[2]:>10}")
         for label, result in results.items():
             if result["error"] is not None:
-                print(f"  {label}: INVALID: {result['error']}")
+                errors.append(f"{scenario.name} / {label}: INVALID: {result['error']}")
                 failed = True
+    print("Process time in ms: median ± median absolute deviation; every output checked against GNU.\n")
+    print("Effective MiB/s uses output/copy bytes or logical input size; it does not measure disk I/O.\n")
+    if records:
+        print(markdown_table(records))
+    if errors:
+        print("\nValidation errors:\n")
+        for error in errors:
+            print(f"- {error}")
     if args.json_output:
         args.json_output.parent.mkdir(parents=True, exist_ok=True)
         args.json_output.write_text(json.dumps({
