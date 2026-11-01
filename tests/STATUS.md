@@ -1,22 +1,22 @@
 # Utility test status
 
-Generated 2026-11-01 01:03 UTC with `nix develop --command uv run tests/report.py --output tests/STATUS.md`.
+Generated 2026-11-01 01:32 UTC with `nix develop --command uv run tests/report.py --output tests/STATUS.md`.
 
-**2141/2503 checks pass.** Coverage: 168/168 distinct utilities have tests; 45/45 implemented utilities have tests. The table includes all 172 project and utility rows tracked in the README.
+**2287/2647 checks pass.** Coverage: 168/168 distinct utilities have tests; 46/46 implemented utilities have tests. The table includes all 172 project and utility rows tracked in the README.
 
-The expanded corpus has 2458 executions but only 1480 distinct test configurations after collapsing source-family duplicates while retaining locale variants. The eight utilities with the most passing checks account for 732/2141 passes: `basename` (122), `tail` (108), `wc` (97), `dirname` (97), `sort` (92), `basenc` (80), `uniq` (68), `sha256sum` (68).
+The expanded corpus has 2602 executions but only 1554 distinct test configurations after collapsing source-family duplicates while retaining locale variants. The eight utilities with the most passing checks account for 810/2287 passes: `b2sum` (146), `basename` (122), `tail` (108), `wc` (97), `dirname` (97), `sort` (92), `basenc` (80), `uniq` (68).
 
 Reference-backed corpus cases run under both C and C.UTF-8. Literal expectations, imported uutils cases, and GNU Perl suites run in C.
 
-Corpus checks by locale: `C` 1063/1246, `C.UTF-8` 1033/1212.
+Corpus checks by locale: `C` 1136/1318, `C.UTF-8` 1106/1284.
 
-GNU and uutils agree on 967/974 shared corpus inputs. This is reference agreement, not `lutils` conformance.
+GNU and uutils agree on 1037/1044 shared corpus inputs. This is reference agreement, not `lutils` conformance.
 
 Reference disagreements: `mkdir/existing-without-parents` [C], `mkdir/existing-without-parents` [C.UTF-8], `mkdir/parent-is-file` [C], `mkdir/parent-is-file` [C.UTF-8], `wc/unicode-character-count` [C], `wc/unicode-display-width` [C], `wc/unicode-word-separator` [C].
 
 The four GNU Perl suites executed 198 named subcases (`basename` 35, `dirname` 22, `head` 63, `seq` 78). They count as four suite checks in the headline.
 
-Curated behavioral cases add 759 executions across 50 utilities. 107 utilities still have only a baseline case; these rows indicate test reach, not deep conformance. Privileged and interactive commands need isolated system fixtures before positive paths can be checked.
+Curated behavioral cases add 832 executions across 51 utilities. 106 utilities still have only a baseline case; these rows indicate test reach, not deep conformance. Privileged and interactive commands need isolated system fixtures before positive paths can be checked.
 
 Each cell is passed/total. `—` means no test in that source. An imported check is a ported uutils case; a GNU suite counts as one suite check. The same utility appears in multiple project rows with the same test counts; the headline counts each check once. Failures from stubs are expected.
 
@@ -24,7 +24,7 @@ Each cell is passed/total. `—` means no test in that source. An imported check
 |------------|--------------|---------------|-------|----------|----------|-----------|------------|---------|------------|-------------|---------|----------|
 | Coreutils  | `[`          | No            | —     | —        | —        | —         | —          | 0/2     | —          | —           | 0/2     | Failing  |
 | Coreutils  | `arch`       | No            | —     | —        | —        | —         | —          | 0/2     | —          | —           | 0/2     | Failing  |
-| Coreutils  | `b2sum`      | No            | —     | —        | —        | —         | —          | 0/2     | —          | —           | 0/2     | Failing  |
+| Coreutils  | `b2sum`      | Yes           | 76/76 | 70/70    | —        | —         | —          | —       | —          | —           | 146/146 | Passing  |
 | Coreutils  | `base32`     | Yes           | 26/26 | 22/22    | —        | —         | —          | —       | —          | —           | 48/48   | Passing  |
 | Coreutils  | `base64`     | Yes           | 28/28 | 24/24    | —        | —         | —          | —       | —          | —           | 52/52   | Passing  |
 | Coreutils  | `basename`   | Yes           | 48/48 | 48/48    | 12/12    | —         | —          | —       | 13/13      | 1/1         | 122/122 | Passing  |

@@ -132,6 +132,8 @@ def scenarios(size_mib: int) -> list[Scenario]:
                  input_file=True, rate_basis="logical input"),
         Scenario("sha256sum file", "sha256sum", ("input",),
                  input_file=True, rate_basis="logical input"),
+        Scenario("b2sum file", "b2sum", ("input",),
+                 input_file=True, rate_basis="logical input"),
         Scenario("base64 file", "base64", ("input",),
                  input_file=True, rate_basis="logical input"),
         Scenario("base32 file", "base32", ("input",),

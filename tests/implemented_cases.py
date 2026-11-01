@@ -68,6 +68,7 @@ def implemented_cases() -> list[Case]:
     # Digest block boundaries, binary input, output modes, and manifest checks.
     # The "abc" digests are the published test vectors for each algorithm.
     abc_digests = {
+        "b2sum": "ba80a53f981c4d0d6a2797b69f12f6e94c212f14685ac4b74b12bb6fdbffa2d17d87c5392aab792dc252d5de4533cc9518d38aa8dbf1925ab92386edd4009923",
         "md5sum": "900150983cd24fb0d6963f7d28e17f72",
         "sha1sum": "a9993e364706816aba3e25717850c26c9cd0d89d",
         "sha224sum": "23097d223405d8228642a477bda255b32aadbce4bda0b3f7e36c9da7",
@@ -106,6 +107,20 @@ def implemented_cases() -> list[Case]:
             both(util, "check-unmarked-name", ["-c", "manifest"],
                  files=[("data", b"abc"),
                         ("manifest", b"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad 9data\n")])
+
+    for bits in (0, 8, 128, 256, 504, 512):
+        both("b2sum", f"length-{bits}", [f"--length={bits}"], stdin=b"abc")
+        both("b2sum", f"tagged-length-{bits}", ["--tag", f"-l{bits}"], stdin=b"abc")
+    for size in (0, 1, 127, 128, 129, 255, 256, 4 * 1024 * 1024 + 1):
+        both("b2sum", f"boundary-{size}", stdin=b"a" * size)
+    both("b2sum", "check-mixed-lengths", ["--check", "manifest"],
+         files=[("data", b"abc"),
+                ("manifest", b"bddd813c634239723171ef3fee98579b94964e3bb1cb3e427262c8c068d52319  data\n"
+                             b"BLAKE2b (data) = ba80a53f981c4d0d6a2797b69f12f6e94c212f14685ac4b74b12bb6fdbffa2d17d87c5392aab792dc252d5de4533cc9518d38aa8dbf1925ab92386edd4009923\n")])
+    # GNU localizes diagnostic quotes; uutils uses ASCII quotes in both locales.
+    for length in ("7", "513", "oops"):
+        out.append(Case("gnu", "b2sum", f"invalid-length-{length}",
+                        ("-l", length), b"abc"))
 
     # Whole-line and numeric sorting, stability, and checking.
     both("sort", "basic-order", stdin=b"delta\nalpha\ngamma\nbeta\n")

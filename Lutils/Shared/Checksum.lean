@@ -2,6 +2,7 @@ import Lutils.Shared.Sha2
 import Lutils.Shared.Sha512
 import Lutils.Shared.Sha1
 import Lutils.Shared.Md5
+import Lutils.Shared.Blake2b
 
 namespace Lutils.Checksum
 
@@ -144,7 +145,7 @@ private def parseLineAny (line : String) : Option ManifestEntry :=
   algorithms.findSome? (fun alg => parseLine alg line)
 
 private def checkFile (prog : String) (parseFn : String → Option ManifestEntry)
-    (warnName : Option String) (opts : Options)
+    (digestFile : ManifestEntry → IO String) (warnName : Option String) (opts : Options)
     (listName : String) : IO Bool := do
   let contents ← try readOperandBytes listName catch e =>
     reportFileError prog listName e
@@ -171,17 +172,17 @@ private def checkFile (prog : String) (parseFn : String → Option ManifestEntry
         reportError prog s!"{displayList}: {lineNumber}: {kind}"
     | some entry =>
       parsed := parsed + 1
-      let data ← try some <$> readOperandBytes entry.name catch e =>
+      let actual ← try some <$> digestFile entry catch e =>
         if !opts.ignoreMissing then reportFileError prog entry.name e
         pure none
-      match data with
+      match actual with
       | none =>
         if !opts.ignoreMissing then
           missing := missing + 1
           if !opts.status then putStr s!"{entry.name}: FAILED open or read\n"
-      | some bytes =>
+      | some hash =>
         verified := verified + 1
-        let ok := entry.alg.digest bytes == entry.expected
+        let ok := hash == entry.expected
         if !ok then mismatched := mismatched + 1
         if !opts.status && (!ok || !opts.quiet) then
           putStr s!"{entry.name}: {if ok then "OK" else "FAILED"}\n"
@@ -224,7 +225,9 @@ def runWith (alg : Algorithm) (cksumStyle : Bool) (prog : String)
   if opts.check then
     let mut good := true
     for file in operandsOrStdin opts.files do
-      if !(← checkFile prog (parseLine alg) (some alg.tagName) opts file) then good := false
+      if !(← checkFile prog (parseLine alg)
+          (fun entry => entry.alg.digest <$> readOperandBytes entry.name)
+          (some alg.tagName) opts file) then good := false
     return if good then exitOk else exitFail
   if opts.quiet || opts.status || opts.warn || opts.strict || opts.ignoreMissing then
     let option := if opts.quiet then "--quiet" else if opts.status then "--status" else if opts.warn then "--warn" else if opts.strict then "--strict" else "--ignore-missing"
@@ -263,7 +266,122 @@ def runCksumCheckAny (prog : String) (args : List String) : IO UInt32 := do
     return exitFail
   let mut good := true
   for file in operandsOrStdin opts.files do
-    if !(← checkFile prog parseLineAny none opts file) then good := false
+    if !(← checkFile prog parseLineAny
+        (fun entry => entry.alg.digest <$> readOperandBytes entry.name)
+        none opts file) then good := false
+  return if good then exitOk else exitFail
+
+/-- A BLAKE2b instance with its digest width in the GNU tagged name. -/
+private def blakeAlgorithm (size : Blake2b.DigestSize) : Algorithm :=
+  { tagName := if size.bytes == 64 then "BLAKE2b" else s!"BLAKE2b-{size.bytes * 8}"
+    hexLength := size.bytes * 2
+    digest := Blake2b.digest size }
+
+/-- A BLAKE2b manifest carries its digest width on each line. -/
+private def parseBlakeLine (line : String) : Option ManifestEntry :=
+  (List.range 64).findSome? fun n =>
+    if h : 0 < n + 1 ∧ n + 1 ≤ 64 then
+      parseLine (blakeAlgorithm ⟨n + 1, h.1, h.2⟩) line
+    else none
+
+/-- Parse BLAKE2b's `-l` variants without changing options for fixed-size sums. -/
+private def blakeQuote (value : String) : IO String := do
+  let locale ← IO.getEnv "LC_ALL"
+  return if locale == some "C" || locale == some "POSIX" then
+    s!"'{value}'" else s!"‘{value}’"
+
+private def extractBlakeLength (prog : String) (args : List String) :
+    IO (Option (Blake2b.DigestSize × List String)) := do
+  let mut size : Blake2b.DigestSize := .default
+  let mut kept : List String := []
+  let mut remaining := args
+  while !remaining.isEmpty do
+    let arg := remaining.head!
+    remaining := remaining.tail!
+    if arg == "--" then
+      return some (size, kept.reverse ++ [arg] ++ remaining)
+    let mut value : Option String := none
+    if arg == "-l" || arg == "--length" then
+      if remaining.isEmpty then
+        reportError prog (if arg == "-l" then "option requires an argument -- 'l'"
+          else "option '--length' requires an argument")
+        IO.eprintln s!"Try '{prog} --help' for more information."
+        return none
+      value := some remaining.head!
+      remaining := remaining.tail!
+    else if arg.startsWith "--length=" then
+      value := some (arg.drop 9).toString
+    else if arg.startsWith "-l" && arg.length > 2 && !arg.startsWith "--" then
+      value := some (arg.drop 2).toString
+    match value with
+    | none => kept := arg :: kept
+    | some requested =>
+      let some bits := requested.toNat? | do
+        reportError prog s!"invalid length: {← blakeQuote requested}"
+        return none
+      let some parsed := Blake2b.DigestSize.ofBits bits | do
+        reportError prog s!"invalid length: {← blakeQuote requested}"
+        if bits > 512 then
+          reportError prog s!"maximum digest length for {← blakeQuote "BLAKE2b"} is 512 bits"
+        else reportError prog "length is not a multiple of 8"
+        return none
+      size := parsed
+  return some (size, kept.reverse)
+
+/-- Hash one operand using bounded reads and pure BLAKE2b state transitions. -/
+private def blakeDigestFile (size : Blake2b.DigestSize) (path : String) : IO String := do
+  let chunkSize : ByteChunkSize := ⟨64 * 1024, by native_decide⟩
+  let reader ← operandChunkReader path chunkSize
+  let mut state := Blake2b.State.initial size
+  repeat
+    let chunk ← reader
+    if chunk.isEmpty then break
+    state := state.update chunk
+  return hexEncode state.finish
+
+/-- GNU-compatible BLAKE2b checksum frontend. -/
+def runB2sum (prog : String) (args : List String) : IO UInt32 := do
+  if let some code ← handleMetaFlags prog s!"{prog} [OPTION]... [FILE]..." args then return code
+  let some (size, args) ← extractBlakeLength prog args | return exitFail
+  let some opts ← parse prog false args | return exitFail
+  if opts.check && (opts.zero || opts.tagSpecified || opts.modeSpecified) then
+    let message := if opts.zero then "the --zero option is not supported when verifying checksums"
+      else if opts.tagSpecified then "the --tag option is meaningless when verifying checksums"
+      else "the --binary and --text options are meaningless when verifying checksums"
+    reportError prog message
+    IO.eprintln s!"Try '{prog} --help' for more information."
+    return exitFail
+  if opts.tag && opts.textSpecified then
+    reportError prog "--tag does not support --text mode"
+    IO.eprintln s!"Try '{prog} --help' for more information."
+    return exitFail
+  if opts.check then
+    let mut good := true
+    for file in operandsOrStdin opts.files do
+      if !(← checkFile prog parseBlakeLine
+          (fun entry => do
+            let some size := Blake2b.DigestSize.ofBits (entry.alg.hexLength * 4) |
+              throw (IO.userError "invalid BLAKE2b manifest length")
+            blakeDigestFile size entry.name)
+          (some "BLAKE2b") opts file) then good := false
+    return if good then exitOk else exitFail
+  if opts.quiet || opts.status || opts.warn || opts.strict || opts.ignoreMissing then
+    let option := if opts.quiet then "--quiet"
+      else if opts.status then "--status"
+      else if opts.warn then "--warn"
+      else if opts.strict then "--strict"
+      else "--ignore-missing"
+    reportError prog s!"the {option} option is meaningful only when verifying checksums"
+    IO.eprintln s!"Try '{prog} --help' for more information."
+    return exitFail
+  let mut good := true
+  let alg := blakeAlgorithm size
+  for file in operandsOrStdin opts.files do
+    try
+      putStr (render alg opts file (← blakeDigestFile size file))
+    catch e =>
+      reportFileError prog file e
+      good := false
   return if good then exitOk else exitFail
 
 end Lutils.Checksum

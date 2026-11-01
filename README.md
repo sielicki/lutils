@@ -50,7 +50,7 @@ for implemented applets. The detailed pass counts are in
 | --- | --- | --- | --- |
 | Coreutils | `[` | No | Basic case |
 | Coreutils | `arch` | No | Basic case |
-| Coreutils | `b2sum` | No | Basic case |
+| Coreutils | `b2sum` | Yes | GNU/uutils corpus |
 | Coreutils | `base32` | Yes | GNU/uutils corpus |
 | Coreutils | `base64` | Yes | GNU/uutils corpus |
 | Coreutils | `basename` | Yes | GNU suite; uutils cases; GNU/uutils corpus; NetBSD cases |
