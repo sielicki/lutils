@@ -47,4 +47,7 @@ def runPwd : Applet := fun prog args => do
     reportError prog (describeError e)
     return exitFail
 
+/-- Multicall registration for `pwd`. -/
+abbrev PwdApplet := AppletTag "pwd" runPwd
+
 end Lutils

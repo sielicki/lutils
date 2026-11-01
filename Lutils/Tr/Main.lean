@@ -293,4 +293,7 @@ def runTr : Applet := fun prog args => do
     reportError prog (describeError e)
     return exitFail
 
+/-- Multicall registration for `tr`. -/
+abbrev TrApplet := AppletTag "tr" runTr
+
 end Lutils

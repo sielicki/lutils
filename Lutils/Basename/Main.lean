@@ -112,4 +112,7 @@ def runBasename : Applet := fun prog args => do
     putStr (output ++ terminator)
   return exitOk
 
+/-- Multicall registration for `basename`. -/
+abbrev BasenameApplet := AppletTag "basename" runBasename
+
 end Lutils

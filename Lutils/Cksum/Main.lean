@@ -173,4 +173,7 @@ def runCksum : Applet := fun prog args => do
       else
         runLegacy kind prog rest
 
+/-- Multicall registration for `cksum`. -/
+abbrev CksumApplet := AppletTag "cksum" runCksum
+
 end Lutils

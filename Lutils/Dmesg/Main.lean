@@ -6,4 +6,7 @@ namespace Lutils
 /-- `dmesg` is tracked in the README and awaits implementation. -/
 def runDmesg : Applet := unimplementedApplet
 
+/-- Multicall registration for `dmesg`. -/
+abbrev DmesgApplet := AppletTag "dmesg" runDmesg
+
 end Lutils

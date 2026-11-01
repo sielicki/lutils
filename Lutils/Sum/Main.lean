@@ -44,4 +44,7 @@ def runSum : Applet := fun prog args => do
       good := false
   return if good then exitOk else exitFail
 
+/-- Multicall registration for `sum`. -/
+abbrev SumApplet := AppletTag "sum" runSum
+
 end Lutils

@@ -532,4 +532,7 @@ def runWc : Applet := fun prog args => do
       IO.println s!"{cells} {name}"
   return status
 
+/-- Multicall registration for `wc`. -/
+abbrev WcApplet := AppletTag "wc" runWc
+
 end Lutils

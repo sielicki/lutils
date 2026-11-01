@@ -68,4 +68,7 @@ def runMv : Applet := fun prog args => do
               status := exitFail
       return status
 
+/-- Multicall registration for `mv`. -/
+abbrev MvApplet := AppletTag "mv" runMv
+
 end Lutils

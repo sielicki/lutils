@@ -6,4 +6,7 @@ namespace Lutils
 /-- `setpgid` is tracked in the README and awaits implementation. -/
 def runSetpgid : Applet := unimplementedApplet
 
+/-- Multicall registration for `setpgid`. -/
+abbrev SetpgidApplet := AppletTag "setpgid" runSetpgid
+
 end Lutils

@@ -241,4 +241,7 @@ def runPaste : Applet := fun prog args => do
   output.flush
   return if failed then exitFail else exitOk
 
+/-- Multicall registration for `paste`. -/
+abbrev PasteApplet := AppletTag "paste" runPaste
+
 end Lutils

@@ -77,4 +77,7 @@ def runCp : Applet := fun prog args => do
                   if code != exitOk then status := exitFail
       return status
 
+/-- Multicall registration for `cp`. -/
+abbrev CpApplet := AppletTag "cp" runCp
+
 end Lutils

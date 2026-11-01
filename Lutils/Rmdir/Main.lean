@@ -56,4 +56,7 @@ where
       | none => cur := none
     return reversed.reverse
 
+/-- Multicall registration for `rmdir`. -/
+abbrev RmdirApplet := AppletTag "rmdir" runRmdir
+
 end Lutils

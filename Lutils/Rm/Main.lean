@@ -90,4 +90,7 @@ def runRm : Applet := fun prog args => do
               status := exitFail
   return status
 
+/-- Multicall registration for `rm`. -/
+abbrev RmApplet := AppletTag "rm" runRm
+
 end Lutils

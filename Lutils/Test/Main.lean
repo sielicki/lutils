@@ -6,4 +6,7 @@ namespace Lutils
 /-- `test` is tracked in the README and awaits implementation. -/
 def runTest : Applet := unimplementedApplet
 
+/-- Multicall registration for `test`. -/
+abbrev TestApplet := AppletTag "test" runTest
+
 end Lutils

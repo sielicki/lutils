@@ -6,4 +6,7 @@ namespace Lutils
 /-- `getfacl` is tracked in the README and awaits implementation. -/
 def runGetfacl : Applet := unimplementedApplet
 
+/-- Multicall registration for `getfacl`. -/
+abbrev GetfaclApplet := AppletTag "getfacl" runGetfacl
+
 end Lutils

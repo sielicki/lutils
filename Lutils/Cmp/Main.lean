@@ -335,4 +335,7 @@ def runCmp : Applet := fun prog args => do
     reportError prog (describeError error)
     return 2
 
+/-- Multicall registration for `cmp`. -/
+abbrev CmpApplet := AppletTag "cmp" runCmp
+
 end Lutils

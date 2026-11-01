@@ -63,4 +63,7 @@ def runDirname : Applet := fun prog args => do
     putStr (dirNameOf name ++ if zero then "\x00" else "\n")
   return exitOk
 
+/-- Multicall registration for `dirname`. -/
+abbrev DirnameApplet := AppletTag "dirname" runDirname
+
 end Lutils

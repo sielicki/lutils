@@ -481,4 +481,7 @@ def runGrep : Applet := fun prog args => do
   if hadError then return exitUsage
   return if found then exitOk else exitFail
 
+/-- Multicall registration for `grep`. -/
+abbrev GrepApplet := AppletTag "grep" runGrep
+
 end Lutils

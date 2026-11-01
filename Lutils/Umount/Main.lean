@@ -6,4 +6,7 @@ namespace Lutils
 /-- `umount` is tracked in the README and awaits implementation. -/
 def runUmount : Applet := unimplementedApplet
 
+/-- Multicall registration for `umount`. -/
+abbrev UmountApplet := AppletTag "umount" runUmount
+
 end Lutils

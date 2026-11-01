@@ -264,4 +264,7 @@ def runLs : Applet := fun prog args => do
         if code != exitOk then status := exitFail
       return status
 
+/-- Multicall registration for `ls`. -/
+abbrev LsApplet := AppletTag "ls" runLs
+
 end Lutils

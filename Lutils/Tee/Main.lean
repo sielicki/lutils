@@ -53,4 +53,7 @@ def runTee : Applet := fun prog args => do
     try h.flush catch _ => pure ()
   return status
 
+/-- Multicall registration for `tee`. -/
+abbrev TeeApplet := AppletTag "tee" runTee
+
 end Lutils

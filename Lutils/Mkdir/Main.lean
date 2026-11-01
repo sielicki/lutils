@@ -35,4 +35,7 @@ def runMkdir : Applet := fun prog args => do
       status := exitFail
   return status
 
+/-- Multicall registration for `mkdir`. -/
+abbrev MkdirApplet := AppletTag "mkdir" runMkdir
+
 end Lutils

@@ -60,4 +60,7 @@ def runPrintenv : Applet := fun prog args => do
       | none => status := exitFail
     return status
 
+/-- Multicall registration for `printenv`. -/
+abbrev PrintenvApplet := AppletTag "printenv" runPrintenv
+
 end Lutils

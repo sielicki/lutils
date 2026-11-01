@@ -51,4 +51,7 @@ def runRev : Applet := fun prog args => do
       status := exitFail
   return status
 
+/-- Multicall registration for `rev`. -/
+abbrev RevApplet := AppletTag "rev" runRev
+
 end Lutils

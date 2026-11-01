@@ -6,4 +6,7 @@ namespace Lutils
 /-- `mount` is tracked in the README and awaits implementation. -/
 def runMount : Applet := unimplementedApplet
 
+/-- Multicall registration for `mount`. -/
+abbrev MountApplet := AppletTag "mount" runMount
+
 end Lutils

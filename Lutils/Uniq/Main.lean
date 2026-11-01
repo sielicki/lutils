@@ -257,4 +257,7 @@ def runUniq : Applet := fun prog args => do
     reportFileError prog input e
     return exitFail
 
+/-- Multicall registration for `uniq`. -/
+abbrev UniqApplet := AppletTag "uniq" runUniq
+
 end Lutils

@@ -343,4 +343,7 @@ def runSeq : Applet := fun prog args => do
   catch e =>
     return if isBrokenPipe e then exitOk else exitFail
 
+/-- Multicall registration for `seq`. -/
+abbrev SeqApplet := AppletTag "seq" runSeq
+
 end Lutils

@@ -18,9 +18,11 @@ and substantial disk space. `nix build .#lean-llvm` also builds the toolchain.
 
 Each implemented utility has a folder at `Lutils/UTILITY/Main.lean`. The
 `Lutils/Shared` modules hold code used across utilities, such as path handling,
-copy and remove operations, and the `head`/`tail` engine. `Lutils.lean` imports
-the utility modules and defines the multicall dispatch table; `Main.lean` is
-the executable entry point. Utilities tracked below but not yet implemented
+copy and remove operations, and the `head`/`tail` engine. Each utility module
+registers its command name and runner through an `AppletTag` type. `Lutils.lean`
+imports those modules and resolves a type list into the multicall dispatch
+table; `Main.lean` is the executable entry point. Utilities tracked below but
+not yet implemented
 also have folders with callable stubs. They are registered in the dispatch
 table and `lutils --list`, so tests can invoke them now. A stub prints
 `not yet implemented` and exits with status 1. Commands listed under multiple

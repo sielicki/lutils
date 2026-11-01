@@ -299,4 +299,7 @@ def runSort : Applet := fun prog args => do
     reportError prog (describeError e)
     return exitUsage
 
+/-- Multicall registration for `sort`. -/
+abbrev SortApplet := AppletTag "sort" runSort
+
 end Lutils

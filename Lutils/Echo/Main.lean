@@ -122,4 +122,7 @@ def runEcho : Applet := fun prog args => do
   catch e =>
     return if isBrokenPipe e then exitOk else exitFail
 
+/-- Multicall registration for `echo`. -/
+abbrev EchoApplet := AppletTag "echo" runEcho
+
 end Lutils

@@ -29,4 +29,7 @@ where
       -- GNU yes dies of SIGPIPE; Lean surfaces that as an IO error instead.
       return if isBrokenPipe e then exitOk else exitFail
 
+/-- Multicall registration for `yes`. -/
+abbrev YesApplet := AppletTag "yes" runYes
+
 end Lutils

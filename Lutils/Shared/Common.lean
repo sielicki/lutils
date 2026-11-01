@@ -13,6 +13,33 @@ namespace Lutils
 /-- A coreutils-style applet: program name, arguments, exit code. -/
 abbrev Applet := String → List String → IO UInt32
 
+/-- A utility module owns its command name and callable implementation. -/
+class AppletSpec (α : Type) where
+  name : String
+  run : Applet
+
+/-- A type-level utility descriptor; modules supply both indices locally. -/
+inductive AppletTag (name : String) (run : Applet) where
+  | marker
+
+instance (name : String) (run : Applet) : AppletSpec (AppletTag name run) where
+  name := name
+  run := run
+
+/-- Resolve a type-level list of utilities to runtime applet entries. -/
+class AppletList (types : List Type) where
+  entries : List (String × Applet)
+
+instance : AppletList [] where
+  entries := []
+
+instance [AppletSpec α] [AppletList rest] : AppletList (α :: rest) where
+  entries := (AppletSpec.name (α := α), AppletSpec.run (α := α)) ::
+    AppletList.entries (types := rest)
+
+def appletsFrom (types : List Type) [AppletList types] : List (String × Applet) :=
+  AppletList.entries (types := types)
+
 /-- lutils version, printed for `--version`. -/
 def version : String := "0.1.0"
 

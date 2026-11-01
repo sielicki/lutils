@@ -67,4 +67,7 @@ def runSleep : Applet := fun prog args => do
   sleepMs total
   return exitOk
 
+/-- Multicall registration for `sleep`. -/
+abbrev SleepApplet := AppletTag "sleep" runSleep
+
 end Lutils

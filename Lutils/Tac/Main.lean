@@ -34,4 +34,7 @@ def runTac : Applet := fun prog args => do
       status := exitFail
   return status
 
+/-- Multicall registration for `tac`. -/
+abbrev TacApplet := AppletTag "tac" runTac
+
 end Lutils

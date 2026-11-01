@@ -6,4 +6,7 @@ namespace Lutils
 /-- `stat` is tracked in the README and awaits implementation. -/
 def runStat : Applet := unimplementedApplet
 
+/-- Multicall registration for `stat`. -/
+abbrev StatApplet := AppletTag "stat" runStat
+
 end Lutils

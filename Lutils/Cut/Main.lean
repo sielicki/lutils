@@ -282,4 +282,7 @@ def runCut : Applet := fun prog args => do
       status := exitFail
   return status
 
+/-- Multicall registration for `cut`. -/
+abbrev CutApplet := AppletTag "cut" runCut
+
 end Lutils

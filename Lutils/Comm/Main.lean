@@ -282,4 +282,7 @@ def runComm : Applet := fun prog args => do
     return exitFail
   return exitOk
 
+/-- Multicall registration for `comm`. -/
+abbrev CommApplet := AppletTag "comm" runComm
+
 end Lutils

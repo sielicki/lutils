@@ -6,4 +6,7 @@ namespace Lutils
 /-- `logname` is tracked in the README and awaits implementation. -/
 def runLogname : Applet := unimplementedApplet
 
+/-- Multicall registration for `logname`. -/
+abbrev LognameApplet := AppletTag "logname" runLogname
+
 end Lutils

@@ -156,4 +156,7 @@ def runUnexpand : Applet := fun prog args => do
       failed := true
   return if failed then exitFail else exitOk
 
+/-- Multicall registration for `unexpand`. -/
+abbrev UnexpandApplet := AppletTag "unexpand" runUnexpand
+
 end Lutils

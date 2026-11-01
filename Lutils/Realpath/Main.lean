@@ -63,4 +63,7 @@ def runRealpath : Applet := fun prog args => do
       status := exitFail
   return status
 
+/-- Multicall registration for `realpath`. -/
+abbrev RealpathApplet := AppletTag "realpath" runRealpath
+
 end Lutils

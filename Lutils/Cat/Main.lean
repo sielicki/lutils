@@ -103,4 +103,7 @@ def runCat : Applet := fun prog args => do
       status := exitFail
   return status
 
+/-- Multicall registration for `cat`. -/
+abbrev CatApplet := AppletTag "cat" runCat
+
 end Lutils

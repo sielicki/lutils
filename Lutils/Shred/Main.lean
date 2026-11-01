@@ -6,4 +6,7 @@ namespace Lutils
 /-- `shred` is tracked in the README and awaits implementation. -/
 def runShred : Applet := unimplementedApplet
 
+/-- Multicall registration for `shred`. -/
+abbrev ShredApplet := AppletTag "shred" runShred
+
 end Lutils

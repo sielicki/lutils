@@ -177,180 +177,188 @@ import Lutils.Yes.Main
 
 namespace Lutils
 
-/-- Every tracked utility, in `--list` order (keep alphabetised). -/
+set_option synthInstance.maxSize 4096
+
+/-- Every tracked utility, resolved from module-owned names and runners. -/
 def applets : List (String × Applet) :=
-  [ ("[", runBracket)
-  , ("arch", runArch)
-  , ("b2sum", runB2sum)
-  , ("base32", runBase32)
-  , ("base64", runBase64)
-  , ("basename", runBasename)
-  , ("basenc", runBasenc)
-  , ("blockdev", runBlockdev)
-  , ("cal", runCal)
-  , ("cat", runCat)
-  , ("chacl", runChacl)
-  , ("chcpu", runChcpu)
-  , ("chgrp", runChgrp)
-  , ("chmod", runChmod)
-  , ("chown", runChown)
-  , ("chroot", runChroot)
-  , ("cksum", runCksum)
-  , ("cmp", runCmp)
-  , ("comm", runComm)
-  , ("cp", runCp)
-  , ("csplit", runCsplit)
-  , ("ctrlaltdel", runCtrlaltdel)
-  , ("cut", runCut)
-  , ("date", runDate)
-  , ("dd", runDd)
-  , ("df", runDf)
-  , ("diff", runDiff)
-  , ("diff3", runDiff3)
-  , ("dir", runDir)
-  , ("dircolors", runDircolors)
-  , ("dirname", runDirname)
-  , ("dmesg", runDmesg)
-  , ("du", runDu)
-  , ("echo", runEcho)
-  , ("env", runEnv)
-  , ("expand", runExpand)
-  , ("expr", runExpr)
-  , ("factor", runFactor)
-  , ("false", runFalse)
-  , ("fdisk", runFdisk)
-  , ("find", runFind)
-  , ("fmt", runFmt)
-  , ("fold", runFold)
-  , ("free", runFree)
-  , ("fsfreeze", runFsfreeze)
-  , ("getfacl", runGetfacl)
-  , ("grep", runGrep)
-  , ("groups", runGroups)
-  , ("head", runHead)
-  , ("hexdump", runHexdump)
-  , ("hostid", runHostid)
-  , ("hostname", runHostname)
-  , ("hugetop", runHugetop)
-  , ("id", runId)
-  , ("install", runInstall)
-  , ("join", runJoin)
-  , ("kill", runKill)
-  , ("last", runLast)
-  , ("link", runLink)
-  , ("ln", runLn)
-  , ("locate", runLocate)
-  , ("login", runLogin)
-  , ("logname", runLogname)
-  , ("ls", runLs)
-  , ("lsblk", runLsblk)
-  , ("lscpu", runLscpu)
-  , ("lsipc", runLsipc)
-  , ("lslocks", runLslocks)
-  , ("lsmem", runLsmem)
-  , ("lsns", runLsns)
-  , ("mcookie", runMcookie)
-  , ("md5sum", runMd5sum)
-  , ("mesg", runMesg)
-  , ("mkdir", runMkdir)
-  , ("mkfifo", runMkfifo)
-  , ("mknod", runMknod)
-  , ("mktemp", runMktemp)
-  , ("more", runMore)
-  , ("mount", runMount)
-  , ("mountpoint", runMountpoint)
-  , ("mv", runMv)
-  , ("newgrp", runNewgrp)
-  , ("nice", runNice)
-  , ("nl", runNl)
-  , ("nohup", runNohup)
-  , ("nologin", runNologin)
-  , ("nproc", runNproc)
-  , ("numfmt", runNumfmt)
-  , ("od", runOd)
-  , ("paste", runPaste)
-  , ("pathchk", runPathchk)
-  , ("pgrep", runPgrep)
-  , ("pidof", runPidof)
-  , ("pidwait", runPidwait)
-  , ("pinky", runPinky)
-  , ("pkill", runPkill)
-  , ("pmap", runPmap)
-  , ("pr", runPr)
-  , ("printenv", runPrintenv)
-  , ("printf", runPrintf)
-  , ("ps", runPs)
-  , ("ptx", runPtx)
-  , ("pwd", runPwd)
-  , ("pwdx", runPwdx)
-  , ("readlink", runReadlink)
-  , ("realpath", runRealpath)
-  , ("renice", runRenice)
-  , ("rev", runRev)
-  , ("rm", runRm)
-  , ("rmdir", runRmdir)
-  , ("sdiff", runSdiff)
-  , ("sed", runSed)
-  , ("seq", runSeq)
-  , ("setfacl", runSetfacl)
-  , ("setpgid", runSetpgid)
-  , ("setsid", runSetsid)
-  , ("sha1sum", runSha1sum)
-  , ("sha224sum", runSha224sum)
-  , ("sha256sum", runSha256sum)
-  , ("sha384sum", runSha384sum)
-  , ("sha512sum", runSha512sum)
-  , ("shred", runShred)
-  , ("shuf", runShuf)
-  , ("skill", runSkill)
-  , ("slabtop", runSlabtop)
-  , ("sleep", runSleep)
-  , ("snice", runSnice)
-  , ("sort", runSort)
-  , ("split", runSplit)
-  , ("stat", runStat)
-  , ("stdbuf", runStdbuf)
-  , ("stty", runStty)
-  , ("su", runSu)
-  , ("sum", runSum)
-  , ("sync", runSync)
-  , ("sysctl", runSysctl)
-  , ("tac", runTac)
-  , ("tail", runTail)
-  , ("tar", runTar)
-  , ("tee", runTee)
-  , ("test", runTest)
-  , ("timeout", runTimeout)
-  , ("tload", runTload)
-  , ("top", runTop)
-  , ("touch", runTouch)
-  , ("tr", runTr)
-  , ("true", runTrue)
-  , ("truncate", runTruncate)
-  , ("tsort", runTsort)
-  , ("tty", runTty)
-  , ("umount", runUmount)
-  , ("uname", runUname)
-  , ("unexpand", runUnexpand)
-  , ("uniq", runUniq)
-  , ("unlink", runUnlink)
-  , ("updatedb", runUpdatedb)
-  , ("uptime", runUptime)
-  , ("users", runUsers)
-  , ("uuidgen", runUuidgen)
-  , ("vdir", runVdir)
-  , ("vmstat", runVmstat)
-  , ("w", runW)
-  , ("watch", runWatch)
-  , ("wc", runWc)
-  , ("who", runWho)
-  , ("whoami", runWhoami)
-  , ("xargs", runXargs)
-  , ("yes", runYes)
-  ]
+  appletsFrom
+    [ BracketApplet
+    , ArchApplet
+    , B2sumApplet
+    , Base32Applet
+    , Base64Applet
+    , BasenameApplet
+    , BasencApplet
+    , BlockdevApplet
+    , CalApplet
+    , CatApplet
+    , ChaclApplet
+    , ChcpuApplet
+    , ChgrpApplet
+    , ChmodApplet
+    , ChownApplet
+    , ChrootApplet
+    , CksumApplet
+    , CmpApplet
+    , CommApplet
+    , CpApplet
+    , CsplitApplet
+    , CtrlaltdelApplet
+    , CutApplet
+    , DateApplet
+    , DdApplet
+    , DfApplet
+    , DiffApplet
+    , Diff3Applet
+    , DirApplet
+    , DircolorsApplet
+    , DirnameApplet
+    , DmesgApplet
+    , DuApplet
+    , EchoApplet
+    , EnvApplet
+    , ExpandApplet
+    , ExprApplet
+    , FactorApplet
+    , FalseApplet
+    , FdiskApplet
+    , FindApplet
+    , FmtApplet
+    , FoldApplet
+    , FreeApplet
+    , FsfreezeApplet
+    , GetfaclApplet
+    , GrepApplet
+    , GroupsApplet
+    , HeadApplet
+    , HexdumpApplet
+    , HostidApplet
+    , HostnameApplet
+    , HugetopApplet
+    , IdApplet
+    , InstallApplet
+    , JoinApplet
+    , KillApplet
+    , LastApplet
+    , LinkApplet
+    , LnApplet
+    , LocateApplet
+    , LoginApplet
+    , LognameApplet
+    , LsApplet
+    , LsblkApplet
+    , LscpuApplet
+    , LsipcApplet
+    , LslocksApplet
+    , LsmemApplet
+    , LsnsApplet
+    , McookieApplet
+    , Md5sumApplet
+    , MesgApplet
+    , MkdirApplet
+    , MkfifoApplet
+    , MknodApplet
+    , MktempApplet
+    , MoreApplet
+    , MountApplet
+    , MountpointApplet
+    , MvApplet
+    , NewgrpApplet
+    , NiceApplet
+    , NlApplet
+    , NohupApplet
+    , NologinApplet
+    , NprocApplet
+    , NumfmtApplet
+    , OdApplet
+    , PasteApplet
+    , PathchkApplet
+    , PgrepApplet
+    , PidofApplet
+    , PidwaitApplet
+    , PinkyApplet
+    , PkillApplet
+    , PmapApplet
+    , PrApplet
+    , PrintenvApplet
+    , PrintfApplet
+    , PsApplet
+    , PtxApplet
+    , PwdApplet
+    , PwdxApplet
+    , ReadlinkApplet
+    , RealpathApplet
+    , ReniceApplet
+    , RevApplet
+    , RmApplet
+    , RmdirApplet
+    , SdiffApplet
+    , SedApplet
+    , SeqApplet
+    , SetfaclApplet
+    , SetpgidApplet
+    , SetsidApplet
+    , Sha1sumApplet
+    , Sha224sumApplet
+    , Sha256sumApplet
+    , Sha384sumApplet
+    , Sha512sumApplet
+    , ShredApplet
+    , ShufApplet
+    , SkillApplet
+    , SlabtopApplet
+    , SleepApplet
+    , SniceApplet
+    , SortApplet
+    , SplitApplet
+    , StatApplet
+    , StdbufApplet
+    , SttyApplet
+    , SuApplet
+    , SumApplet
+    , SyncApplet
+    , SysctlApplet
+    , TacApplet
+    , TailApplet
+    , TarApplet
+    , TeeApplet
+    , TestApplet
+    , TimeoutApplet
+    , TloadApplet
+    , TopApplet
+    , TouchApplet
+    , TrApplet
+    , TrueApplet
+    , TruncateApplet
+    , TsortApplet
+    , TtyApplet
+    , UmountApplet
+    , UnameApplet
+    , UnexpandApplet
+    , UniqApplet
+    , UnlinkApplet
+    , UpdatedbApplet
+    , UptimeApplet
+    , UsersApplet
+    , UuidgenApplet
+    , VdirApplet
+    , VmstatApplet
+    , WApplet
+    , WatchApplet
+    , WcApplet
+    , WhoApplet
+    , WhoamiApplet
+    , XargsApplet
+    , YesApplet
+    ]
 
 /-- Applet names, one per line as consumed by `lutils --list`. -/
 def appletNames : List String := applets.map Prod.fst
+
+/-- The registered names are strictly alphabetical and occur once each. -/
+theorem appletNames_sorted : appletNames.Pairwise (· < ·) := by native_decide
+
+theorem appletNames_nodup : appletNames.Nodup := by native_decide
 
 /-- Look up an applet by name. -/
 def findApplet (name : String) : Option Applet :=
