@@ -37,7 +37,7 @@ currently have safe baseline checks; positive conformance for those commands
 needs an isolated system fixture.
 
 Generate the full per-project status table with
-`nix develop --command python3 tests/report.py --output tests/STATUS.md`.
+`nix develop --command uv run tests/report.py --output tests/STATUS.md`.
 The [current report](STATUS.md) includes every utility row from the project
 README, including untested stubs. The headline check count is an execution
 count, not a compatibility percentage: GNU and uutils repeat many inputs, and

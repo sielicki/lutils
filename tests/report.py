@@ -1,4 +1,8 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["pandas>=2.2,<4", "tabulate>=0.9,<1"]
+# ///
 """Generate a complete per-project utility status table from current conformance tests."""
 
 import argparse
@@ -86,6 +90,39 @@ def tally(binary: Path) -> tuple[dict, dict[str, int], dict[str, list[int]]]:
     return counts, suite_cases, locale_counts
 
 
+def status_table(rows: list[tuple[str, str, str]], counts: dict) -> str:
+    import pandas as pd
+
+    records = []
+    for project, util, implemented in rows:
+        per_family = counts.get(util, {})
+        values = {}
+        passed = total = 0
+        for family in FAMILIES:
+            p, n = per_family.get(family, (0, 0))
+            passed += p
+            total += n
+            values[family] = f"{p}/{n}" if n else "—"
+        records.append({
+            "Project": project,
+            "Utility": f"`{util}`",
+            "Implemented": implemented,
+            "GNU": values["gnu"],
+            "uutils": values["uutils"],
+            "NetBSD": values["netbsd"],
+            "FreeBSD": values["freebsd"],
+            "Behavior": values["behavior"],
+            "Basic": values["basic"],
+            "Imported": values["imported"],
+            "GNU suite": values["suite"],
+            "Total": f"{passed}/{total}" if total else "—",
+            "Result": "Untested" if total == 0 else "Passing" if passed == total else "Failing",
+        })
+    return pd.DataFrame.from_records(records).to_markdown(
+        index=False, tablefmt="github", disable_numparse=True,
+    )
+
+
 def render(counts: dict, suite_cases: dict[str, int],
            locale_counts: dict[str, list[int]]) -> str:
     rows = []
@@ -144,7 +181,7 @@ def render(counts: dict, suite_cases: dict[str, int],
                   if {case.family for case in all_cases if case.util == util} == {"basic"}}
     lines = ["# Utility test status", "",
              f"Generated {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} "
-             "with `nix develop --command python3 tests/report.py --output tests/STATUS.md`.", "",
+             "with `nix develop --command uv run tests/report.py --output tests/STATUS.md`.", "",
              f"**{totals[0]}/{totals[1]} checks pass.** "
              f"Coverage: {len(tested)}/{len(unique)} distinct utilities have tests; "
              f"{len(implemented & tested)}/{len(implemented)} implemented utilities "
@@ -175,22 +212,7 @@ def render(counts: dict, suite_cases: dict[str, int],
              "suite check. The same utility appears in multiple project rows with "
              "the same test counts; the headline counts each check once. "
              "Failures from stubs are expected.", "",
-             "| Project | Utility | Implemented | GNU | uutils | NetBSD | FreeBSD | Behavior | Basic | Imported | GNU suite | Total | Result |",
-             "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |"]
-    for project, util, implemented in rows:
-        per_family = counts.get(util, {})
-        values = []
-        passed = total = 0
-        for family in FAMILIES:
-            p, n = per_family.get(family, (0, 0))
-            passed += p
-            total += n
-            values.append(f"{p}/{n}" if n else "—")
-        result = "Untested" if total == 0 else "Passing" if passed == total else "Failing"
-        lines.append(f"| {project} | `{util}` | {implemented} | " +
-                     " | ".join(values) + f" | {passed}/{total} | {result} |"
-                     if total else f"| {project} | `{util}` | {implemented} | " +
-                     " | ".join(values) + " | — | Untested |")
+             status_table(rows, counts)]
     return "\n".join(lines) + "\n"
 
 
