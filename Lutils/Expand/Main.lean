@@ -1,86 +1,14 @@
 /- Bounded, pure expansion of tab characters. -/
 import Lutils.Shared.Common
-import Lutils.Shared.UnicodeWidth
+import Lutils.Shared.TabColumns
+import Lutils.Shared.TabStops
 
 namespace Lutils
-
-/-- A tab period cannot be zero. -/
-structure TabWidth where
-  value : Nat
-  positive : 0 < value
-
-def TabWidth.eight : TabWidth := ⟨8, by decide⟩
-
-/-- The next multiple of a positive period is strictly after the column. -/
-def TabWidth.next (width : TabWidth) (column : Nat) : Nat :=
-  column + (width.value - column % width.value)
-
-theorem TabWidth.next_gt (width : TabWidth) (column : Nat) :
-    column < width.next column := by
-  unfold TabWidth.next
-  have h := Nat.mod_lt column width.positive
-  omega
-
-/-- Explicit stops may end, or continue at an absolute or relative period. -/
-inductive TabRepeat where
-  | absolute (width : TabWidth)
-  | relative (width : TabWidth)
-
-inductive ExpandStops where
-  | periodic (width : TabWidth)
-  | listed (stops : Array Nat) (continuation : Option TabRepeat)
-
-/-- The column after an expanded tab. Explicit lists beyond their last stop
-use one space when no continuation is present. -/
-def ExpandStops.next (stops : ExpandStops) (column : Nat) : Nat :=
-  match stops with
-  | .periodic width => width.next column
-  | .listed values continuation =>
-      match values.find? (· > column) with
-      | some stop => stop
-      | none =>
-          match continuation with
-          | none => column + 1
-          | some (.absolute width) => width.next column
-          | some (.relative width) =>
-              let origin := values.back?.getD 0
-              origin + width.next (column - origin)
-
-theorem ExpandStops.periodic_next_gt (width : TabWidth) (column : Nat) :
-    column < (ExpandStops.periodic width).next column :=
-  width.next_gt column
 
 structure ExpandOptions where
   stops : ExpandStops := .periodic TabWidth.eight
   initialOnly : Bool := false
   files : List String := []
-
-private def parseTabWidth (value : String) : Except String TabWidth :=
-  match value.toNat? with
-  | some n => if h : 0 < n then .ok ⟨n, h⟩
-              else .error "tab size cannot be 0"
-  | none => .error s!"invalid tab size: '{value}'"
-
-/-- A pure parser for positive, strictly increasing stop columns. -/
-def parseExpandStops (value : String) : Except String ExpandStops := do
-  let tokens := (value.splitToList fun c => c == ',' || c == ' ' || c == '\t').filter (!·.isEmpty)
-  if tokens.isEmpty then return .periodic TabWidth.eight
-  let mut fixed : Array Nat := #[]
-  let mut continuation : Option TabRepeat := none
-  for token in tokens do
-    if continuation.isSome then throw s!"invalid tab stops: '{value}'"
-    if token.startsWith "/" || token.startsWith "+" then
-      let width ← parseTabWidth (String.ofList (token.toList.drop 1))
-      continuation := some (if token.startsWith "/" then .absolute width else .relative width)
-    else
-      let width ← parseTabWidth token
-      if let some previous := fixed.back? then
-        if width.value ≤ previous then throw "tab sizes must be ascending"
-      fixed := fixed.push width.value
-  if fixed.size == 1 && continuation.isNone then
-    let width ← parseTabWidth (toString (fixed[0]!))
-    return .periodic width
-  return .listed fixed continuation
 
 private def expandParse (args : List String) : Except String ExpandOptions :=
   go {} false args
@@ -117,49 +45,16 @@ where
         { opts with stops := stops }
     | c :: _ => .error s!"invalid option -- '{c}'"
 
-/-- Minimal UTF-8 decoder state carried across input chunks. -/
-structure ExpandUtf8 where
-  remaining : Nat := 0
-  value : Nat := 0
-  minimum : Nat := 0
-  seen : Nat := 0
-
-/-- Width of a Unicode scalar under the C.UTF-8 display rules. -/
-def expandScalarWidth (scalar : Nat) : Nat := unicodeScalarCells scalar
-
-/-- The transducer state is independent of its input buffer size. -/
+/-- Expansion state keeps leading-blank status apart from display columns. -/
 structure ExpandState where
   column : Nat := 0
   initial : Bool := true
-  utf8 : ExpandUtf8 := {}
+  utf8 : TabUtf8 := {}
 
 private def expandAdvanceScalar (state : ExpandState) (byte : UInt8)
-    (unicode : Bool) : ExpandState := Id.run do
-  if !unicode || byte.toNat < 128 then
-    return { state with column := state.column + state.utf8.seen + 1, utf8 := {} }
-  let b := byte.toNat
-  if state.utf8.remaining > 0 && 128 ≤ b && b < 192 then
-    let scalar := state.utf8.value * 64 + b % 64
-    if state.utf8.remaining > 1 then
-      let decoder : ExpandUtf8 :=
-        { remaining := state.utf8.remaining - 1, value := scalar,
-          minimum := state.utf8.minimum, seen := state.utf8.seen + 1 }
-      return { state with utf8 := decoder }
-    if scalar ≥ state.utf8.minimum && scalar ≤ 0x10ffff &&
-        !(0xd800 ≤ scalar && scalar ≤ 0xdfff) then
-      let width := expandScalarWidth scalar
-      return { state with column := state.column + width - 1, utf8 := {} }
-    return { state with column := state.column + state.utf8.seen + 1, utf8 := {} }
-  if 194 ≤ b && b ≤ 223 then
-    let decoder : ExpandUtf8 := { remaining := 1, value := b % 32, minimum := 128 }
-    return { state with column := state.column + state.utf8.seen + 1, utf8 := decoder }
-  if 224 ≤ b && b ≤ 239 then
-    let decoder : ExpandUtf8 := { remaining := 2, value := b % 16, minimum := 2048 }
-    return { state with column := state.column + state.utf8.seen + 1, utf8 := decoder }
-  if 240 ≤ b && b ≤ 244 then
-    let decoder : ExpandUtf8 := { remaining := 3, value := b % 8, minimum := 65536 }
-    return { state with column := state.column + state.utf8.seen + 1, utf8 := decoder }
-  return { state with column := state.column + state.utf8.seen + 1, utf8 := {} }
+    (unicode : Bool) : ExpandState :=
+  let next := (TabColumnState.advance ⟨state.column, state.utf8⟩ byte unicode)
+  { state with column := next.column, utf8 := next.utf8 }
 
 /-- Expand one bounded chunk without decoding or changing its output bytes. -/
 def expandChunk (opts : ExpandOptions) (unicode : Bool)
@@ -201,12 +96,7 @@ def runExpand : Applet := fun prog args => do
   let opts ← match expandParse args with
     | .ok value => pure value
     | .error message => reportError prog message; return exitFail
-  let all ← IO.getEnv "LC_ALL"
-  let ctype ← IO.getEnv "LC_CTYPE"
-  let lang ← IO.getEnv "LANG"
-  let locale := (([all, ctype, lang] : List (Option String)).filterMap id).find? (!·.isEmpty)
-    |>.getD "C"
-  let unicode := locale != "C" && locale != "POSIX"
+  let unicode ← tabUnicodeLocale
   let paths := if opts.files.isEmpty then ["-"] else opts.files
   let mut failed := false
   let chunk : ByteChunkSize := ⟨64 * 1024, by native_decide⟩

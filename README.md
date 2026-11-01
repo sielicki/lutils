@@ -143,7 +143,7 @@ for implemented applets. The detailed pass counts are in
 | Coreutils | `tsort` | No | Basic case |
 | Coreutils | `tty` | No | Basic case |
 | Coreutils | `uname` | No | Basic case |
-| Coreutils | `unexpand` | No | Basic case |
+| Coreutils | `unexpand` | Yes | GNU/uutils corpus |
 | Coreutils | `uniq` | Yes | GNU/uutils corpus |
 | Coreutils | `unlink` | No | Basic case |
 | Coreutils | `uptime` | No | Basic case |

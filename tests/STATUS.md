@@ -1,22 +1,22 @@
 # Utility test status
 
-Generated 2026-11-01 00:38 UTC with `nix develop --command python3 tests/report.py --output tests/STATUS.md`.
+Generated 2026-11-01 00:55 UTC with `nix develop --command python3 tests/report.py --output tests/STATUS.md`.
 
-**2091/2455 checks pass.** Coverage: 168/168 distinct utilities have tests; 44/44 implemented utilities have tests. The table includes all 172 project and utility rows tracked in the README.
+**2141/2503 checks pass.** Coverage: 168/168 distinct utilities have tests; 45/45 implemented utilities have tests. The table includes all 172 project and utility rows tracked in the README.
 
-The expanded corpus has 2410 executions but only 1454 distinct test configurations after collapsing source-family duplicates while retaining locale variants. The eight utilities with the most passing checks account for 732/2091 passes: `basename` (122), `tail` (108), `wc` (97), `dirname` (97), `sort` (92), `basenc` (80), `uniq` (68), `sha256sum` (68).
+The expanded corpus has 2458 executions but only 1480 distinct test configurations after collapsing source-family duplicates while retaining locale variants. The eight utilities with the most passing checks account for 732/2141 passes: `basename` (122), `tail` (108), `wc` (97), `dirname` (97), `sort` (92), `basenc` (80), `uniq` (68), `sha256sum` (68).
 
 Reference-backed corpus cases run under both C and C.UTF-8. Literal expectations, imported uutils cases, and GNU Perl suites run in C.
 
-Corpus checks by locale: `C` 1038/1222, `C.UTF-8` 1008/1188.
+Corpus checks by locale: `C` 1063/1246, `C.UTF-8` 1033/1212.
 
-GNU and uutils agree on 945/952 shared corpus inputs. This is reference agreement, not `lutils` conformance.
+GNU and uutils agree on 967/974 shared corpus inputs. This is reference agreement, not `lutils` conformance.
 
 Reference disagreements: `mkdir/existing-without-parents` [C], `mkdir/existing-without-parents` [C.UTF-8], `mkdir/parent-is-file` [C], `mkdir/parent-is-file` [C.UTF-8], `wc/unicode-character-count` [C], `wc/unicode-display-width` [C], `wc/unicode-word-separator` [C].
 
 The four GNU Perl suites executed 198 named subcases (`basename` 35, `dirname` 22, `head` 63, `seq` 78). They count as four suite checks in the headline.
 
-Curated behavioral cases add 734 executions across 49 utilities. 108 utilities still have only a baseline case; these rows indicate test reach, not deep conformance. Privileged and interactive commands need isolated system fixtures before positive paths can be checked.
+Curated behavioral cases add 759 executions across 50 utilities. 107 utilities still have only a baseline case; these rows indicate test reach, not deep conformance. Privileged and interactive commands need isolated system fixtures before positive paths can be checked.
 
 Each cell is passed/total. `—` means no test in that source. An imported check is a ported uutils case; a GNU suite counts as one suite check. The same utility appears in multiple project rows with the same test counts; the headline counts each check once. Failures from stubs are expected.
 
@@ -119,7 +119,7 @@ Each cell is passed/total. `—` means no test in that source. An imported check
 | Coreutils | `tsort` | No | — | — | — | — | — | 0/2 | — | — | 0/2 | Failing |
 | Coreutils | `tty` | No | — | — | — | — | — | 0/2 | — | — | 0/2 | Failing |
 | Coreutils | `uname` | No | — | — | — | — | — | 0/2 | — | — | 0/2 | Failing |
-| Coreutils | `unexpand` | No | — | — | — | — | — | 0/2 | — | — | 0/2 | Failing |
+| Coreutils | `unexpand` | Yes | 28/28 | 22/22 | — | — | — | — | — | — | 50/50 | Passing |
 | Coreutils | `uniq` | Yes | 34/34 | 34/34 | — | — | — | — | — | — | 68/68 | Passing |
 | Coreutils | `unlink` | No | — | — | — | — | — | 0/2 | — | — | 0/2 | Failing |
 | Coreutils | `uptime` | No | — | — | — | — | — | 0/2 | — | — | 0/2 | Failing |

@@ -426,6 +426,30 @@ def implemented_cases() -> list[Case]:
     out.append(Case("gnu", "expand", "descending-stops", ("-t", "4,2"),
                     b"a\tb\n"))
 
+    # Streaming space compression shares expand's tab-stop and column rules.
+    both("unexpand", "default-leading", stdin=b"        x\na       b\n")
+    both("unexpand", "all-four", ["-t4"], stdin=b"a   b\n        x\n")
+    both("unexpand", "first-only", ["--first-only", "-t4"],
+         stdin=b"    x   y\n")
+    both("unexpand", "space-before-tab", ["-a"],
+         stdin=b"a       \tx\na      \tx\n")
+    both("unexpand", "single-space-at-stop", ["-a"],
+         stdin=b"1234567 X\n1234567  X\n1234567 \tX\n")
+    both("unexpand", "explicit-stops", ["-t2,4"],
+         stdin=b"  x   y       z\n    \t  end\n")
+    both("unexpand", "absolute-repeat", ["--tabs=2,4,/8"],
+         stdin=b"  x   y       z\n")
+    both("unexpand", "relative-repeat", ["--tabs=1,+8"],
+         stdin=b"        x         y\n")
+    both("unexpand", "backspace", ["-t4"], stdin=b"abc\b     X\n")
+    both("unexpand", "binary", ["-t4"], stdin=b"\xff   \x80\n")
+    both("unexpand", "chunk-boundary", ["-t4", "data"],
+         files=[("data", b"x" * (64 * 1024 - 1) + b"   end\n")])
+    out.append(Case("gnu", "unexpand", "unicode-width", ("-t4",),
+                    "é   中  X\n".encode()))
+    out.append(Case("gnu", "unexpand", "zero-tab-width", ("-t", "0"), b"a b\n"))
+    out.append(Case("gnu", "unexpand", "descending-stops", ("-t", "4,2"), b"a b\n"))
+
     # GNU grep is a separate package from coreutils and has no uutils reference.
     grep_data = b"alpha\nbeta\nALPHA\nalphanumeric\nlast"
     for name, flags, pattern in (
