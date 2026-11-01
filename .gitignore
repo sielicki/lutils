@@ -1,0 +1,15 @@
+# Lake build products and downloaded packages
+/.lake/
+
+# Local Lean API experiment
+/Probe.lean
+
+# Nix build links and direnv state
+/result
+/result-*
+/.direnv/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+experiments/

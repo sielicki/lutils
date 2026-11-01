@@ -1,0 +1,9 @@
+/- Placeholder for the `updatedb` utility. -/
+import Lutils.Shared.Stub
+
+namespace Lutils
+
+/-- `updatedb` is tracked in the README and awaits implementation. -/
+def runUpdatedb : Applet := unimplementedApplet
+
+end Lutils

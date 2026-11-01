@@ -1,0 +1,18 @@
+name = "lutils"
+version = "0.1.0"
+defaultTargets = ["lutils"]
+backend = "llvm"
+moreLeancArgs = ["-flto=full"]
+moreLinkArgs = ["-fuse-ld=mold", "-flto=full"]
+
+[[require]]
+name = "ParseIt"
+git = "https://github.com/fgdorais/lean4-parseit"
+rev = "fd28b1c6cc58b241ac0663bdebffe51cb37bbb52"
+
+[[lean_lib]]
+name = "Lutils"
+
+[[lean_exe]]
+name = "lutils"
+root = "Main"
